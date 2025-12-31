@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.1.1...v1.1.2) (2025-12-31)
+
+
+### Bug Fixes
+
+* Docker socket permission error ([a576a12](https://github.com/alex289/docker-traefik-netcup-companion/commit/a576a12079857b7768f74970425688a212d96409))
+* Release permissions ([dd9fec2](https://github.com/alex289/docker-traefik-netcup-companion/commit/dd9fec2ba12e7a48a84443acbb0987e5cc8f6146))
+
 ## [1.1.1](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.1.0...v1.1.1) (2025-12-31)
 
 
