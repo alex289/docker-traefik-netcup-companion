@@ -16,12 +16,8 @@ FROM alpine:3.23
 
 RUN apk add --no-cache ca-certificates tzdata
 
-RUN adduser -D -g '' appuser
-
 WORKDIR /app
 
 COPY --from=builder /companion .
-
-USER appuser
 
 ENTRYPOINT ["./companion"]
