@@ -1,7 +1,7 @@
 services:
   docker-traefik-netcup-companion:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     container_name: docker-traefik-netcup-companion
     restart: unless-stopped

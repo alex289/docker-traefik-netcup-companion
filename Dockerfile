@@ -1,0 +1,27 @@
+FROM golang:1.25-alpine AS builder
+
+WORKDIR /app
+
+RUN apk add --no-cache git ca-certificates
+
+COPY go.mod go.sum* ./
+
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /companion ./cmd/companion
+
+FROM alpine:3.23
+
+RUN apk add --no-cache ca-certificates tzdata
+
+RUN adduser -D -g '' appuser
+
+WORKDIR /app
+
+COPY --from=builder /companion .
+
+USER appuser
+
+ENTRYPOINT ["./companion"]

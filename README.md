@@ -1,0 +1,172 @@
+# Docker Traefik Netcup Companion
+
+> Credits to
+> - [netcup-dns-api](https://github.com/aellwein/netcup-dns-api)
+> - [docker-traefik-cloudflare-companion](https://github.com/tiredofit/docker-traefik-cloudflare-companion)
+
+A lightweight Go application that automatically creates DNS records in Netcup when Docker containers with Traefik labels are started.
+
+## Features
+
+- 🐳 Watches Docker container events in real-time
+- 🏷️ Detects Traefik `Host` rules from container labels
+- 🌐 Automatically creates/updates DNS A records in Netcup
+- 🔄 Scans existing running containers on startup
+- 🎯 Optional filtering by Docker labels
+- 🔒 Runs as non-root user in Docker
+
+## How It Works
+
+1. The companion watches for Docker container start events
+2. When a container starts, it inspects the container's labels for Traefik router rules
+3. It extracts hostnames from `Host()` rules (e.g., `Host(\`app.example.com\`)`)
+4. For each hostname, it creates or updates an A record in Netcup DNS pointing to the host's IP
+
+## Prerequisites
+
+- Docker with access to the Docker socket
+- A Netcup account with API access enabled
+- Netcup API credentials (Customer Number, API Key, API Password)
+
+## Configuration
+
+The application is configured via environment variables:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NC_CUSTOMER_NUMBER` | Yes | Your Netcup customer number |
+| `NC_API_KEY` | Yes | Your Netcup API key |
+| `NC_API_PASSWORD` | Yes | Your Netcup API password |
+| `DOCKER_FILTER_LABEL` | No | Filter containers by label (e.g., `traefik.enable=true`) |
+| `NC_DEFAULT_TTL` | No | Default TTL for DNS records (default: 300) |
+
+## Usage
+
+### Docker Compose (Recommended)
+
+```yaml
+services:
+  docker-traefik-netcup-companion:
+    image: ghcr.io/alex289/docker-traefik-netcup-companion:latest
+    container_name: docker-traefik-netcup-companion
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - NC_CUSTOMER_NUMBER=12345
+      - NC_API_KEY=your_api_key
+      - NC_API_PASSWORD=your_api_password
+      - DOCKER_FILTER_LABEL=traefik.enable=true
+```
+
+### Docker Run
+
+```bash
+docker run -d \
+  --name docker-traefik-netcup-companion \
+  --restart unless-stopped \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  -e NC_CUSTOMER_NUMBER=12345 \
+  -e NC_API_KEY=your_api_key \
+  -e NC_API_PASSWORD=your_api_password \
+  -e DOCKER_FILTER_LABEL=traefik.enable=true \
+  ghcr.io/alex289/docker-traefik-netcup-companion:latest
+```
+
+### Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/alex289/docker-traefik-netcup-companion.git
+cd docker-traefik-netcup-companion
+
+# Build with Docker
+docker build -t docker-traefik-netcup-companion .
+
+# Or build locally
+go build -o companion ./cmd/companion
+```
+
+## Example Traefik Labels
+
+The companion looks for Traefik router rule labels containing `Host()` directives:
+
+```yaml
+services:
+  myapp:
+    image: myapp:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.myapp.rule=Host(`myapp.example.com`)"
+      - "traefik.http.routers.myapp.entrypoints=websecure"
+      - "traefik.http.routers.myapp.tls.certresolver=letsencrypt"
+```
+
+When this container starts, the companion will:
+1. Detect the `Host(\`myapp.example.com\`)` rule
+2. Extract domain `example.com` and subdomain `myapp`
+3. Create an A record: `myapp.example.com` → `<host-ip>`
+
+## Project Structure
+
+```
+.
+├── cmd/
+│   └── companion/
+│       └── main.go          # Application entry point
+├── internal/
+│   ├── config/
+│   │   └── config.go        # Configuration loading
+│   ├── dns/
+│   │   └── manager.go       # DNS record management
+│   ├── docker/
+│   │   └── watcher.go       # Docker event watching
+│   └── netcup/
+│       └── netcup.go        # Netcup API client
+├── docker-compose.yml
+├── Dockerfile
+├── go.mod
+└── README.md
+```
+
+## Getting Netcup API Credentials
+
+1. Log in to your [Netcup Customer Control Panel (CCP)](https://www.customercontrolpanel.de/)
+2. Navigate to "Master Data" → "API"
+3. Generate or view your API password
+4. Your customer number is displayed in the top right corner
+
+## Troubleshooting
+
+### Permission Denied for Docker Socket
+
+Make sure the Docker socket is mounted read-only and accessible:
+
+```yaml
+volumes:
+  - /var/run/docker.sock:/var/run/docker.sock:ro
+```
+
+### DNS Records Not Created
+
+1. Check the logs: `docker logs docker-traefik-netcup-companion`
+2. Verify your Netcup credentials are correct
+3. Ensure the domain is managed in your Netcup account
+4. Check that the container has the correct Traefik labels
+
+### Container Not Detected
+
+If using `DOCKER_FILTER_LABEL`, make sure your container has the matching label:
+
+```yaml
+labels:
+  - "traefik.enable=true"
+```
+
+## License
+
+MIT License
+
+## Credits
+
+- Netcup DNS API client based on [aellwein/netcup-dns-api](https://github.com/aellwein/netcup-dns-api)
