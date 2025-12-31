@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.0.0...v1.1.0) (2025-12-31)
+
+
+### Features
+
+* Combine release and docker workflow ([899d6b1](https://github.com/alex289/docker-traefik-netcup-companion/commit/899d6b1167610d51f3b73c3e3de92c0382007a97))
+
 ## 1.0.0 (2025-12-31)
 
 
