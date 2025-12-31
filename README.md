@@ -166,7 +166,3 @@ labels:
 ## License
 
 MIT License
-
-## Credits
-
-- Netcup DNS API client based on [aellwein/netcup-dns-api](https://github.com/aellwein/netcup-dns-api)
