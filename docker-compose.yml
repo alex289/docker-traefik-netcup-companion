@@ -1,0 +1,15 @@
+services:
+  docker-traefik-netcup-companion:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: docker-traefik-netcup-companion
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - NC_CUSTOMER_NUMBER=12345
+      - NC_API_KEY=your_key
+      - NC_API_PASSWORD=your_password
+      # Filter to only watch specific containers if needed
+      - DOCKER_FILTER_LABEL=traefik.enable=true
