@@ -26,6 +26,11 @@ jobs:
 
   build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     needs: release-please
     if: needs.release-please.outputs.new-release-created == 'true'
     steps:
