@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.1.2...v1.1.3) (2025-12-31)
+
+
+### Bug Fixes
+
+* Fetch all tags for docker build ([74b95c1](https://github.com/alex289/docker-traefik-netcup-companion/commit/74b95c1f9da316de468fe9a367e86e04968553e8))
+
 ## [1.1.2](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.1.1...v1.1.2) (2025-12-31)
 
 
