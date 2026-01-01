@@ -13,9 +13,9 @@ import (
 )
 
 type Manager struct {
-	config    *config.Config
-	client    *netcup.NetcupDnsClient
-	mu        sync.Mutex
+	config     *config.Config
+	client     *netcup.NetcupDnsClient
+	mu         sync.Mutex
 	knownHosts map[string]bool // Track hosts we've already processed
 }
 

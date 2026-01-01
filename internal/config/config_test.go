@@ -23,12 +23,12 @@ func TestLoad(t *testing.T) {
 		{
 			name: "valid configuration with optional values",
 			envVars: map[string]string{
-				"NC_CUSTOMER_NUMBER": "12345",
-				"NC_API_KEY":         "test-api-key",
-				"NC_API_PASSWORD":    "test-api-password",
-				"NC_DEFAULT_TTL":     "600",
+				"NC_CUSTOMER_NUMBER":  "12345",
+				"NC_API_KEY":          "test-api-key",
+				"NC_API_PASSWORD":     "test-api-password",
+				"NC_DEFAULT_TTL":      "600",
 				"DOCKER_FILTER_LABEL": "traefik.enable=true",
-				"DRY_RUN":            "true",
+				"DRY_RUN":             "true",
 			},
 			wantErr: false,
 		},

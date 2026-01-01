@@ -6,38 +6,38 @@ import (
 
 func TestSplitHostname(t *testing.T) {
 	tests := []struct {
-		name     string
-		hostname string
+		name          string
+		hostname      string
 		wantDomain    string
 		wantSubdomain string
 	}{
 		{
-			name:     "simple domain",
-			hostname: "example.com",
+			name:          "simple domain",
+			hostname:      "example.com",
 			wantDomain:    "example.com",
 			wantSubdomain: "@",
 		},
 		{
-			name:     "subdomain",
-			hostname: "app.example.com",
+			name:          "subdomain",
+			hostname:      "app.example.com",
 			wantDomain:    "example.com",
 			wantSubdomain: "app",
 		},
 		{
-			name:     "nested subdomain",
-			hostname: "api.app.example.com",
+			name:          "nested subdomain",
+			hostname:      "api.app.example.com",
 			wantDomain:    "example.com",
 			wantSubdomain: "api.app",
 		},
 		{
-			name:     "deep nested subdomain",
-			hostname: "v1.api.app.example.com",
+			name:          "deep nested subdomain",
+			hostname:      "v1.api.app.example.com",
 			wantDomain:    "example.com",
 			wantSubdomain: "v1.api.app",
 		},
 		{
-			name:     "single part hostname",
-			hostname: "localhost",
+			name:          "single part hostname",
+			hostname:      "localhost",
 			wantDomain:    "localhost",
 			wantSubdomain: "@",
 		},
