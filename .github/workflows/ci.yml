@@ -28,8 +28,14 @@ jobs:
       - name: Verify dependencies
         run: go mod verify
 
-      - name: Run Tests
-        run: go test -v -race -coverprofile=coverage.txt ./...
-
       - name: Build
         run: go build -v ./...
+
+      - name: Check format
+        run: go mod tidy && gofmt -s -w . && git diff --exit-code
+
+      - name: Check vet
+        run: go vet ./...
+
+      - name: Run Tests
+        run: go test -v -race -coverprofile=coverage.txt ./...
