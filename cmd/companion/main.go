@@ -22,6 +22,10 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
+	if cfg.DryRun {
+		log.Println("DRY RUN MODE ENABLED - No actual DNS changes will be made")
+	}
+
 	// Create DNS manager
 	dnsManager := dns.NewManager(cfg)
 

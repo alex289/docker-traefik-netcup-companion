@@ -47,6 +47,12 @@ func (m *Manager) ProcessHostInfo(ctx context.Context, info docker.HostInfo) err
 
 	log.Printf("Processing DNS for %s -> %s", info.Hostname, hostIP)
 
+	if m.config.DryRun {
+		log.Printf("[DRY RUN] Would create/update DNS record: %s.%s -> %s", info.Subdomain, info.Domain, hostIP)
+		m.knownHosts[info.Hostname] = true
+		return nil
+	}
+
 	// Login to Netcup
 	session, err := m.client.Login()
 	if err != nil {

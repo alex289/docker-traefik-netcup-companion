@@ -13,13 +13,13 @@ A lightweight Go application that automatically creates DNS records in Netcup wh
 - 🌐 Automatically creates/updates DNS A records in Netcup
 - 🔄 Scans existing running containers on startup
 - 🎯 Optional filtering by Docker labels
-- 🔒 Runs as non-root user in Docker
+- 🧪 Dry run mode for testing without making actual DNS changes
 
 ## How It Works
 
 1. The companion watches for Docker container start events
 2. When a container starts, it inspects the container's labels for Traefik router rules
-3. It extracts hostnames from `Host()` rules (e.g., `Host(\`app.example.com\`)`)
+3. It extracts hostnames from `Host()` rules (e.g., ``Host(`app.example.com`)``)
 4. For each hostname, it creates or updates an A record in Netcup DNS pointing to the host's IP
 
 ## Prerequisites
@@ -39,6 +39,7 @@ The application is configured via environment variables:
 | `NC_API_PASSWORD` | Yes | Your Netcup API password |
 | `DOCKER_FILTER_LABEL` | No | Filter containers by label (e.g., `traefik.enable=true`) |
 | `NC_DEFAULT_TTL` | No | Default TTL for DNS records (default: 300) |
+| `DRY_RUN` | No | Enable dry run mode - logs actions without making actual DNS changes (set to `true` or `1`) |
 
 ## Usage
 
@@ -103,9 +104,35 @@ services:
 ```
 
 When this container starts, the companion will:
-1. Detect the `Host(\`myapp.example.com\`)` rule
+1. Detect the ``Host(`myapp.example.com`)`` rule
 2. Extract domain `example.com` and subdomain `myapp`
 3. Create an A record: `myapp.example.com` → `<host-ip>`
+
+## Dry Run Mode
+
+Dry run mode allows you to test the companion without making actual DNS changes. This is useful for:
+- Testing your configuration before going live
+- Verifying which DNS records would be created
+- Debugging label detection issues
+
+To enable dry run mode, set the `DRY_RUN` environment variable to `true` or `1`:
+
+```yaml
+services:
+  docker-traefik-netcup-companion:
+    image: ghcr.io/alex289/docker-traefik-netcup-companion:latest
+    environment:
+      - DRY_RUN=true
+      - NC_CUSTOMER_NUMBER=12345
+      - NC_API_KEY=your_api_key
+      - NC_API_PASSWORD=your_api_password
+```
+
+When dry run mode is enabled:
+- The companion will detect containers and extract hostnames normally
+- It will log which DNS records would be created/updated
+- No actual API calls to Netcup will be made
+- Log messages will be prefixed with `[DRY RUN]`
 
 ## Project Structure
 

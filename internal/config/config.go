@@ -17,6 +17,9 @@ type Config struct {
 
 	// Default TTL for DNS records (in seconds)
 	DefaultTTL string
+
+	// Dry run mode - if enabled, no actual DNS changes will be made
+	DryRun bool
 }
 
 func Load() (*Config, error) {
@@ -45,11 +48,17 @@ func Load() (*Config, error) {
 		defaultTTL = "300" // 5 minutes default
 	}
 
+	dryRun := false
+	if os.Getenv("DRY_RUN") == "true" || os.Getenv("DRY_RUN") == "1" {
+		dryRun = true
+	}
+
 	return &Config{
 		CustomerNumber:    customerNumber,
 		APIKey:            apiKey,
 		APIPassword:       apiPassword,
 		DockerFilterLabel: os.Getenv("DOCKER_FILTER_LABEL"),
 		DefaultTTL:        defaultTTL,
+		DryRun:            dryRun,
 	}, nil
 }
