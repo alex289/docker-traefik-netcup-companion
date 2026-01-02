@@ -11,7 +11,6 @@ A lightweight Go application that automatically creates DNS records in Netcup wh
 - 🐳 Watches Docker container events in real-time
 - 🏷️ Detects Traefik `Host` rules from container labels
 - 🌐 Automatically creates/updates DNS A records in Netcup
-- 🔄 Scans existing running containers on startup
 - 🎯 Optional filtering by Docker labels
 - 🧪 Dry run mode for testing without making actual DNS changes
 - 🔔 Optional webhook notifications for DNS changes and errors (via [nicholas-fedor/shoutrrr](https://shoutrrr.nickfedor.com/))
@@ -28,21 +27,6 @@ A lightweight Go application that automatically creates DNS records in Netcup wh
 - Docker with access to the Docker socket
 - A Netcup account with API access enabled
 - Netcup API credentials (Customer Number, API Key, API Password)
-
-## Configuration
-
-The application is configured via environment variables:
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NC_CUSTOMER_NUMBER` | Yes | Your Netcup customer number |
-| `NC_API_KEY` | Yes | Your Netcup API key |
-| `NC_API_PASSWORD` | Yes | Your Netcup API password |
-| `HOST_IP` | No | Override IP address for DNS records. If not set, auto-detects the host IP (required when running locally as auto-detection returns private IP) |
-| `DOCKER_FILTER_LABEL` | No | Filter containers by label (e.g., `traefik.enable=true`) |
-| `NC_DEFAULT_TTL` | No | Default TTL for DNS records (default: 300) |
-| `DRY_RUN` | No | Enable dry run mode - logs actions without making actual DNS changes (set to `true` or `1`) |
-| `NOTIFICATION_URLS` | No | Comma-separated list of notification webhook URLs in [shoutrrr format](https://shoutrrr.nickfedor.com/v0.13.1/services/overview/) (e.g., `slack://token@channel,discord://token@id`) |
 
 ## Usage
 
@@ -83,6 +67,33 @@ docker run -d \
   -e HOST_IP=your_host_ip \
   ghcr.io/alex289/docker-traefik-netcup-companion:latest
 ```
+
+## Configuration
+
+The application is configured via environment variables:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NC_CUSTOMER_NUMBER` | Yes | Your Netcup customer number |
+| `NC_API_KEY` | Yes | Your Netcup API key |
+| `NC_API_PASSWORD` | Yes | Your Netcup API password |
+| `HOST_IP` | No | Override IP address for DNS records. If not set, auto-detects the host IP (required when running locally as auto-detection returns private IP) |
+| `DOCKER_FILTER_LABEL` | No | Filter containers by label (e.g., `traefik.enable=true`) |
+| `NC_DEFAULT_TTL` | No | Default TTL for DNS records (default: 300) |
+| `DRY_RUN` | No | Enable dry run mode - logs actions without making actual DNS changes (set to `true` or `1`) |
+| `NOTIFICATION_URLS` | No | Comma-separated list of notification webhook URLs in [shoutrrr format](https://shoutrrr.nickfedor.com/v0.13.1/services/overview/) (e.g., `slack://token@channel,discord://token@id`) |
+
+### Advanced Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NC_MAX_RETRIES` | Maximum number of retry attempts | `3` |
+| `NC_INITIAL_BACKOFF_MS` | Initial backoff delay in milliseconds | `1000` |
+| `NC_MAX_BACKOFF_MS` | Maximum backoff delay in milliseconds | `30000` |
+| `NC_BACKOFF_MULTIPLIER` | Multiplier for exponential backoff | `2.0` |
+| `NC_CIRCUIT_BREAKER_THRESHOLD` | Consecutive failures to open circuit | `5` |
+| `NC_CIRCUIT_BREAKER_TIMEOUT_SEC` | Wait time before retrying (seconds) | `60` |
+| `NC_CIRCUIT_BREAKER_HALF_OPEN_REQS` | Test requests in half-open state | `3` |
 
 ### Building from Source
 
@@ -190,6 +201,7 @@ volumes:
 2. Verify your Netcup credentials are correct
 3. Ensure the domain is managed in your Netcup account
 4. Check that the container has the correct Traefik labels
+5. Check if circuit breaker is open (see logs for "circuit breaker" messages)
 
 ### Container Not Detected
 
@@ -199,6 +211,16 @@ If using `DOCKER_FILTER_LABEL`, make sure your container has the matching label:
 labels:
   - "traefik.enable=true"
 ```
+
+### API Rate Limiting or Timeouts
+
+The companion includes automatic retry logic and circuit breaker protection. If you see rate limit errors:
+
+1. Check the logs for retry and backoff messages
+2. Consider adjusting retry configuration (see [docs/RELIABILITY.md](docs/RELIABILITY.md))
+3. Reduce the frequency of container starts/stops if possible
+
+For more troubleshooting related to reliability features, see [docs/RELIABILITY.md](docs/RELIABILITY.md).
 
 ## License
 

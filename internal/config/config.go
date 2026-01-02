@@ -27,6 +27,17 @@ type Config struct {
 
 	// Notification URLs - optional webhook URLs for notifications (shoutrrr format)
 	NotificationURLs []string
+
+	// Retry settings
+	MaxRetries        int     // Maximum number of retry attempts (default: 3)
+	InitialBackoff    int     // Initial backoff in milliseconds (default: 1000)
+	MaxBackoff        int     // Maximum backoff in milliseconds (default: 30000)
+	BackoffMultiplier float64 // Backoff multiplier (default: 2.0)
+
+	// Circuit breaker settings
+	CircuitBreakerThreshold    int // Number of consecutive failures to open circuit (default: 5)
+	CircuitBreakerTimeout      int // Circuit breaker timeout in seconds (default: 60)
+	CircuitBreakerHalfOpenReqs int // Number of requests to try in half-open state (default: 3)
 }
 
 func Load() (*Config, error) {
@@ -60,6 +71,17 @@ func Load() (*Config, error) {
 		dryRun = true
 	}
 
+	// Parse retry settings with defaults
+	maxRetries := getEnvAsInt("NC_MAX_RETRIES", 3)
+	initialBackoff := getEnvAsInt("NC_INITIAL_BACKOFF_MS", 1000)
+	maxBackoff := getEnvAsInt("NC_MAX_BACKOFF_MS", 30000)
+	backoffMultiplier := getEnvAsFloat("NC_BACKOFF_MULTIPLIER", 2.0)
+
+	// Parse circuit breaker settings with defaults
+	circuitBreakerThreshold := getEnvAsInt("NC_CIRCUIT_BREAKER_THRESHOLD", 5)
+	circuitBreakerTimeout := getEnvAsInt("NC_CIRCUIT_BREAKER_TIMEOUT_SEC", 60)
+	circuitBreakerHalfOpenReqs := getEnvAsInt("NC_CIRCUIT_BREAKER_HALF_OPEN_REQS", 3)
+
 	// Parse notification URLs (comma-separated)
 	var notificationURLs []string
 	if notificationURLsStr := os.Getenv("NOTIFICATION_URLS"); notificationURLsStr != "" {
@@ -71,13 +93,38 @@ func Load() (*Config, error) {
 	}
 
 	return &Config{
-		CustomerNumber:    customerNumber,
-		APIKey:            apiKey,
-		APIPassword:       apiPassword,
-		DockerFilterLabel: os.Getenv("DOCKER_FILTER_LABEL"),
-		DefaultTTL:        defaultTTL,
-		HostIP:            os.Getenv("HOST_IP"),
-		DryRun:            dryRun,
-		NotificationURLs:  notificationURLs,
+		CustomerNumber:             customerNumber,
+		APIKey:                     apiKey,
+		APIPassword:                apiPassword,
+		DockerFilterLabel:          os.Getenv("DOCKER_FILTER_LABEL"),
+		DefaultTTL:                 defaultTTL,
+		HostIP:                     os.Getenv("HOST_IP"),
+		DryRun:                     dryRun,
+		NotificationURLs:           notificationURLs,
+		MaxRetries:                 maxRetries,
+		InitialBackoff:             initialBackoff,
+		MaxBackoff:                 maxBackoff,
+		BackoffMultiplier:          backoffMultiplier,
+		CircuitBreakerThreshold:    circuitBreakerThreshold,
+		CircuitBreakerTimeout:      circuitBreakerTimeout,
+		CircuitBreakerHalfOpenReqs: circuitBreakerHalfOpenReqs,
 	}, nil
+}
+
+func getEnvAsInt(key string, defaultValue int) int {
+	if val := os.Getenv(key); val != "" {
+		if intVal, err := strconv.Atoi(val); err == nil {
+			return intVal
+		}
+	}
+	return defaultValue
+}
+
+func getEnvAsFloat(key string, defaultValue float64) float64 {
+	if val := os.Getenv(key); val != "" {
+		if floatVal, err := strconv.ParseFloat(val, 64); err == nil {
+			return floatVal
+		}
+	}
+	return defaultValue
 }
