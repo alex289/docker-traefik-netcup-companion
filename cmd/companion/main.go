@@ -10,6 +10,7 @@ import (
 	"github.com/alex289/docker-traefik-netcup-companion/internal/config"
 	"github.com/alex289/docker-traefik-netcup-companion/internal/dns"
 	"github.com/alex289/docker-traefik-netcup-companion/internal/docker"
+	"github.com/alex289/docker-traefik-netcup-companion/internal/state"
 )
 
 func main() {
@@ -26,8 +27,22 @@ func main() {
 		log.Println("DRY RUN MODE ENABLED - No actual DNS changes will be made")
 	}
 
+	// Initialize state manager if persistence is enabled
+	var stateManager *state.Manager
+	if cfg.StatePersistenceEnabled {
+		stateManager, err = state.NewManager(cfg.StateFilePath)
+		if err != nil {
+			log.Printf("Warning: Failed to initialize state manager: %v", err)
+			log.Println("Continuing without state persistence")
+		} else {
+			log.Printf("State persistence enabled, using file: %s", cfg.StateFilePath)
+		}
+	} else {
+		log.Println("State persistence disabled")
+	}
+
 	// Create DNS manager
-	dnsManager := dns.NewManager(cfg)
+	dnsManager := dns.NewManager(cfg, stateManager)
 
 	// Create Docker watcher
 	watcher, err := docker.NewWatcher(cfg.DockerFilterLabel)
@@ -48,6 +63,14 @@ func main() {
 		log.Printf("Received signal %v, shutting down...", sig)
 		cancel()
 	}()
+
+	// Perform startup reconciliation if enabled
+	if cfg.ReconciliationEnabled && stateManager != nil && stateManager.HasRecords() {
+		log.Println("Performing startup reconciliation...")
+		if err := dnsManager.ReconcileFromState(ctx); err != nil {
+			log.Printf("Warning: Reconciliation failed: %v", err)
+		}
+	}
 
 	// Scan existing containers first
 	log.Println("Scanning existing containers...")

@@ -38,6 +38,11 @@ type Config struct {
 	CircuitBreakerThreshold    int // Number of consecutive failures to open circuit (default: 5)
 	CircuitBreakerTimeout      int // Circuit breaker timeout in seconds (default: 60)
 	CircuitBreakerHalfOpenReqs int // Number of requests to try in half-open state (default: 3)
+
+	// State persistence settings
+	StatePersistenceEnabled bool   // Enable state persistence to disk (default: true)
+	StateFilePath           string // Path to state file (default: /data/state.json)
+	ReconciliationEnabled   bool   // Enable startup reconciliation (default: true)
 }
 
 func Load() (*Config, error) {
@@ -108,6 +113,9 @@ func Load() (*Config, error) {
 		CircuitBreakerThreshold:    circuitBreakerThreshold,
 		CircuitBreakerTimeout:      circuitBreakerTimeout,
 		CircuitBreakerHalfOpenReqs: circuitBreakerHalfOpenReqs,
+		StatePersistenceEnabled:    getEnvAsBool("STATE_PERSISTENCE_ENABLED", true),
+		StateFilePath:              getEnvAsString("STATE_FILE_PATH", "/data/state.json"),
+		ReconciliationEnabled:      getEnvAsBool("RECONCILIATION_ENABLED", true),
 	}, nil
 }
 
@@ -125,6 +133,25 @@ func getEnvAsFloat(key string, defaultValue float64) float64 {
 		if floatVal, err := strconv.ParseFloat(val, 64); err == nil {
 			return floatVal
 		}
+	}
+	return defaultValue
+}
+
+func getEnvAsBool(key string, defaultValue bool) bool {
+	if val := os.Getenv(key); val != "" {
+		if val == "true" || val == "1" {
+			return true
+		}
+		if val == "false" || val == "0" {
+			return false
+		}
+	}
+	return defaultValue
+}
+
+func getEnvAsString(key string, defaultValue string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
 	}
 	return defaultValue
 }

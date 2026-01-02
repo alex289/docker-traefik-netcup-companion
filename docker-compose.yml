@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./companion-data:/data  # Optional
     environment:
       - NC_CUSTOMER_NUMBER=12345
       - NC_API_KEY=your_key
@@ -14,4 +15,4 @@ services:
       - DRY_RUN=true
       - HOST_IP=your_host_ip  # Optional but recommended
       - DOCKER_FILTER_LABEL=traefik.enable=true # Optional
-      - NOTIFICATION_URLS=slack://token@channel,discord://token@id # Optional
+      - NOTIFICATION_URLS=discord://token@id # Optional

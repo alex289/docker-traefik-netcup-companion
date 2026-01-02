@@ -43,13 +43,15 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./companion-data:/data  # Optional
     environment:
       - NC_CUSTOMER_NUMBER=12345
-      - NC_API_KEY=your_api_key
-      - NC_API_PASSWORD=your_api_password
-      - DOCKER_FILTER_LABEL=traefik.enable=true
+      - NC_API_KEY=your_key
+      - NC_API_PASSWORD=your_password
       - DRY_RUN=true
-      - HOST_IP=your_host_ip
+      - HOST_IP=your_host_ip  # Optional but recommended
+      - DOCKER_FILTER_LABEL=traefik.enable=true # Optional
+      - NOTIFICATION_URLS=discord://token@id # Optional
 ```
 
 ### Docker Run
@@ -60,11 +62,12 @@ docker run -d \
   --restart unless-stopped \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
   -e NC_CUSTOMER_NUMBER=12345 \
-  -e NC_API_KEY=your_api_key \
-  -e NC_API_PASSWORD=your_api_password \
-  -e DOCKER_FILTER_LABEL=traefik.enable=true \
+  -e NC_API_KEY=your_key \
+  -e NC_API_PASSWORD=your_password \
   -e DRY_RUN=true \
   -e HOST_IP=your_host_ip \
+  -e DOCKER_FILTER_LABEL=traefik.enable=true \
+  -e NOTIFICATION_URLS=discord://token@id \
   ghcr.io/alex289/docker-traefik-netcup-companion:latest
 ```
 
@@ -94,6 +97,9 @@ The application is configured via environment variables:
 | `NC_CIRCUIT_BREAKER_THRESHOLD` | Consecutive failures to open circuit | `5` |
 | `NC_CIRCUIT_BREAKER_TIMEOUT_SEC` | Wait time before retrying (seconds) | `60` |
 | `NC_CIRCUIT_BREAKER_HALF_OPEN_REQS` | Test requests in half-open state | `3` |
+| `STATE_PERSISTENCE_ENABLED` | Enable state persistence to disk | `true` |
+| `STATE_FILE_PATH` | Path to state file | `/data/state.json` |
+| `RECONCILIATION_ENABLED` | Enable startup reconciliation | `true` |
 
 ### Building from Source
 

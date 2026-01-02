@@ -17,7 +17,7 @@ func TestNewManager(t *testing.T) {
 		DryRun:         false,
 	}
 
-	manager := NewManager(cfg)
+	manager := NewManager(cfg, nil)
 
 	if manager == nil {
 		t.Fatal("NewManager() returned nil")
@@ -45,7 +45,7 @@ func TestProcessHostInfo_DryRun(t *testing.T) {
 		DryRun:         true, // Enable dry run mode
 	}
 
-	manager := NewManager(cfg)
+	manager := NewManager(cfg, nil)
 	ctx := context.Background()
 
 	info := docker.HostInfo{
@@ -91,7 +91,7 @@ func TestProcessHostInfo_DuplicateHost(t *testing.T) {
 		DryRun:         false, // Disable dry run to test duplicate logic
 	}
 
-	manager := NewManager(cfg)
+	manager := NewManager(cfg, nil)
 
 	// Manually add host to knownHosts
 	info := docker.HostInfo{
@@ -127,7 +127,7 @@ func TestProcessHostInfo_MultipleHosts(t *testing.T) {
 		DryRun:         false, // Disable dry run
 	}
 
-	manager := NewManager(cfg)
+	manager := NewManager(cfg, nil)
 
 	hosts := []docker.HostInfo{
 		{
@@ -198,7 +198,7 @@ func TestManager_ConcurrentAccess(t *testing.T) {
 		DryRun:         false, // Disable dry run
 	}
 
-	manager := NewManager(cfg)
+	manager := NewManager(cfg, nil)
 
 	// Pre-populate knownHosts to avoid API calls
 	manager.knownHosts["app.example.com"] = true
@@ -243,7 +243,7 @@ func TestManager_ContextCancellation(t *testing.T) {
 		DryRun:         false, // Disable dry run
 	}
 
-	manager := NewManager(cfg)
+	manager := NewManager(cfg, nil)
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // Cancel immediately
 
