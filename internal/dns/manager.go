@@ -56,12 +56,6 @@ func (m *Manager) ProcessHostInfo(ctx context.Context, info docker.HostInfo) err
 
 	log.Printf("Processing DNS for %s -> %s", info.Hostname, hostIP)
 
-	if m.config.DryRun {
-		log.Printf("[DRY RUN] Would create/update DNS record: %s.%s -> %s", info.Subdomain, info.Domain, hostIP)
-		m.knownHosts[info.Hostname] = true
-		return nil
-	}
-
 	// Login to Netcup
 	session, err := m.client.Login()
 	if err != nil {
@@ -83,8 +77,10 @@ func (m *Manager) ProcessHostInfo(ctx context.Context, info docker.HostInfo) err
 
 	// Check if record already exists
 	recordExists := false
+	var existingIP string
 	for _, record := range *records {
 		if record.Hostname == info.Subdomain && record.Type == "A" {
+			existingIP = record.Destination
 			if record.Destination == hostIP {
 				log.Printf("DNS record for %s already exists with correct IP", info.Hostname)
 				m.knownHosts[info.Hostname] = true
@@ -94,6 +90,16 @@ func (m *Manager) ProcessHostInfo(ctx context.Context, info docker.HostInfo) err
 			log.Printf("DNS record for %s exists but with different IP (%s), will update", info.Hostname, record.Destination)
 			break
 		}
+	}
+
+	if m.config.DryRun {
+		if recordExists {
+			log.Printf("[DRY RUN] Would update DNS record: %s.%s (%s -> %s)", info.Subdomain, info.Domain, existingIP, hostIP)
+		} else {
+			log.Printf("[DRY RUN] Would create DNS record: %s.%s -> %s", info.Subdomain, info.Domain, hostIP)
+		}
+		m.knownHosts[info.Hostname] = true
+		return nil
 	}
 
 	// Create or update the DNS record
