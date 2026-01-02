@@ -1,0 +1,17 @@
+services:
+  web1:
+    image: nginx:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web1.rule=Host(`web1.localhost`)"
+
+  web2:
+    image: nginx:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web2.rule=Host(`web2.localhost`)"
+
+  web3:
+    image: nginx:latest
+    labels:
+      - "traefik.http.routers.web3.rule=Host(`web3.localhost`)"

@@ -13,3 +13,5 @@ services:
       - NC_API_PASSWORD=your_password
       # Filter to only watch specific containers if needed
       - DOCKER_FILTER_LABEL=traefik.enable=true
+      # Enable dry run mode for testing
+      - DRY_RUN=false
