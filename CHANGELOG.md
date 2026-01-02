@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.5.0...v1.6.0) (2026-01-02)
+
+
+### Features
+
+* Add fuzz config parsing tests ([d338cd8](https://github.com/alex289/docker-traefik-netcup-companion/commit/d338cd8d01a22050cdce05c5aee3e96822fece90))
+* Add persistent state storage ([3241d58](https://github.com/alex289/docker-traefik-netcup-companion/commit/3241d58c95aa775bdf7611894ee4b2c7d9f85e16))
+* Improve resilience ([2b809b7](https://github.com/alex289/docker-traefik-netcup-companion/commit/2b809b7b25d648f86a9809b6fb0ac5132c6fe066))
+
 ## [1.5.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.4.0...v1.5.0) (2026-01-02)
 
 
