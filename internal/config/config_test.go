@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"testing"
 )
 
@@ -268,4 +269,90 @@ func TestLoadNotificationURLs(t *testing.T) {
 			}
 		})
 	}
+}
+
+// FuzzLoad tests the config.Load function with random input data
+// Run with: go test -fuzz=FuzzLoad -fuzztime=30s
+func FuzzLoad(f *testing.F) {
+	// Add seed corpus for common scenarios
+	f.Add("12345", "api-key", "api-password", "300", "true", "slack://token@channel", "traefik.enable=true", "192.168.1.1")
+	f.Add("999999", "key123", "pass123", "600", "false", "", "", "")
+	f.Add("0", "", "", "", "", "", "", "")
+	f.Add("-1", "special!@#$%^&*()", "pass\nwith\nnewlines", "3600", "1", "invalid,url,format", "label", "10.0.0.1")
+	f.Add("abc", "key", "pass", "invalid", "yes", "http://example.com,https://test.com", "", "")
+
+	f.Fuzz(func(t *testing.T, customerNumber, apiKey, apiPassword, defaultTTL, dryRun, notificationURLs, dockerFilterLabel, hostIP string) {
+		// Clear environment and set fuzzed values
+		os.Clearenv()
+		os.Setenv("NC_CUSTOMER_NUMBER", customerNumber)
+		os.Setenv("NC_API_KEY", apiKey)
+		os.Setenv("NC_API_PASSWORD", apiPassword)
+		os.Setenv("NC_DEFAULT_TTL", defaultTTL)
+		os.Setenv("DRY_RUN", dryRun)
+		os.Setenv("NOTIFICATION_URLS", notificationURLs)
+		os.Setenv("DOCKER_FILTER_LABEL", dockerFilterLabel)
+		os.Setenv("HOST_IP", hostIP)
+
+		cfg, err := Load()
+
+		// Verify that the function doesn't panic and returns consistent results
+		if err != nil {
+			// If there's an error, config should be nil
+			if cfg != nil {
+				t.Errorf("Load() returned error but config is not nil: %v", err)
+			}
+
+			// Basic error checks - error message should not be empty
+			if err.Error() == "" {
+				t.Errorf("Load() returned empty error message")
+			}
+			return
+		}
+
+		// If no error, config must not be nil
+		if cfg == nil {
+			t.Fatal("Load() returned nil config without error")
+		}
+
+		// Verify customerNumber is valid integer when parsed successfully
+		if customerNumberInt, parseErr := strconv.Atoi(customerNumber); parseErr == nil {
+			if cfg.CustomerNumber != customerNumberInt {
+				t.Errorf("CustomerNumber = %v, want %v", cfg.CustomerNumber, customerNumberInt)
+			}
+		}
+
+		// Verify required fields are set
+		if cfg.APIKey == "" {
+			t.Error("APIKey should not be empty when Load() succeeds")
+		}
+		if cfg.APIPassword == "" {
+			t.Error("APIPassword should not be empty when Load() succeeds")
+		}
+
+		// Verify default TTL is set
+		if cfg.DefaultTTL == "" {
+			t.Error("DefaultTTL should not be empty (should default to 300)")
+		}
+
+		// Verify DryRun is a valid boolean result
+		// No panic means it's valid
+		_ = cfg.DryRun
+
+		// NotificationURLs can be nil or an empty/non-empty slice depending on input
+		// Just verify it doesn't cause issues when accessed
+		_ = cfg.NotificationURLs
+
+		// Verify fields are set as expected from environment
+		if cfg.APIKey != apiKey {
+			t.Errorf("APIKey = %v, want %v", cfg.APIKey, apiKey)
+		}
+		if cfg.APIPassword != apiPassword {
+			t.Errorf("APIPassword = %v, want %v", cfg.APIPassword, apiPassword)
+		}
+		// Note: DockerFilterLabel and HostIP may differ from input due to environment variable handling
+		// (e.g., null bytes are not preserved in environment variables)
+		// Just verify they don't cause panics
+		_ = cfg.DockerFilterLabel
+		_ = cfg.HostIP
+	})
 }

@@ -39,3 +39,6 @@ jobs:
 
       - name: Run Tests
         run: go test -v -race -coverprofile=coverage.txt ./...
+
+      - name: Run Fuzz Tests
+        run: go test ./internal/config -fuzz=FuzzLoad -fuzztime=15s
