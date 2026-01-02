@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.4.0...v1.5.0) (2026-01-02)
+
+
+### Features
+
+* Add Shoutrrr notifications ([df66d22](https://github.com/alex289/docker-traefik-netcup-companion/commit/df66d22364dc8287b29ac8c37ad36426e06a822a))
+
+
+### Bug Fixes
+
+* Tidy go mod ([84100f3](https://github.com/alex289/docker-traefik-netcup-companion/commit/84100f3f2e85171c9ac63ba157654d6fc5062753))
+
 ## [1.4.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.3.0...v1.4.0) (2026-01-02)
 
 
