@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.3.0...v1.4.0) (2026-01-02)
+
+
+### Features
+
+* Move dry mode to check for create or update ([669d99d](https://github.com/alex289/docker-traefik-netcup-companion/commit/669d99d02e899a0562b69334792c6c79178aaaf9))
+
 ## [1.3.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.2.0...v1.3.0) (2026-01-02)
 
 
