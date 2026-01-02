@@ -37,11 +37,15 @@ The application is configured via environment variables:
 | `NC_CUSTOMER_NUMBER` | Yes | Your Netcup customer number |
 | `NC_API_KEY` | Yes | Your Netcup API key |
 | `NC_API_PASSWORD` | Yes | Your Netcup API password |
+| `HOST_IP` | No | Override IP address for DNS records. If not set, auto-detects the host IP (required when running locally as auto-detection returns private IP) |
 | `DOCKER_FILTER_LABEL` | No | Filter containers by label (e.g., `traefik.enable=true`) |
 | `NC_DEFAULT_TTL` | No | Default TTL for DNS records (default: 300) |
 | `DRY_RUN` | No | Enable dry run mode - logs actions without making actual DNS changes (set to `true` or `1`) |
 
 ## Usage
+
+> [!IMPORTANT]
+> I recommend setting the `DRY_RUN` variable to `true` initially to test your setup without making actual DNS changes. Also you should set the `HOST_IP` variable to your public IP address to ensure the IP will always be correct.
 
 ### Docker Compose (Recommended)
 
@@ -58,6 +62,8 @@ services:
       - NC_API_KEY=your_api_key
       - NC_API_PASSWORD=your_api_password
       - DOCKER_FILTER_LABEL=traefik.enable=true
+      - DRY_RUN=true
+      - HOST_IP=your_host_ip
 ```
 
 ### Docker Run
@@ -71,6 +77,8 @@ docker run -d \
   -e NC_API_KEY=your_api_key \
   -e NC_API_PASSWORD=your_api_password \
   -e DOCKER_FILTER_LABEL=traefik.enable=true \
+  -e DRY_RUN=true \
+  -e HOST_IP=your_host_ip \
   ghcr.io/alex289/docker-traefik-netcup-companion:latest
 ```
 

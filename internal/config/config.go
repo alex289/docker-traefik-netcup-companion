@@ -18,6 +18,9 @@ type Config struct {
 	// Default TTL for DNS records (in seconds)
 	DefaultTTL string
 
+	// Host IP - if set, this IP will be used for DNS records instead of auto-detection
+	HostIP string
+
 	// Dry run mode - if enabled, no actual DNS changes will be made
 	DryRun bool
 }
@@ -59,6 +62,7 @@ func Load() (*Config, error) {
 		APIPassword:       apiPassword,
 		DockerFilterLabel: os.Getenv("DOCKER_FILTER_LABEL"),
 		DefaultTTL:        defaultTTL,
+		HostIP:            os.Getenv("HOST_IP"),
 		DryRun:            dryRun,
 	}, nil
 }

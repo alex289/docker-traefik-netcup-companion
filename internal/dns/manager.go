@@ -39,10 +39,19 @@ func (m *Manager) ProcessHostInfo(ctx context.Context, info docker.HostInfo) err
 		return nil
 	}
 
-	// Get the host's IP address (we'll use the Docker host's IP)
-	hostIP, err := getHostIP()
-	if err != nil {
-		return fmt.Errorf("failed to get host IP: %w", err)
+	// Get the host's IP address
+	var hostIP string
+	if m.config.HostIP != "" {
+		// Use configured IP
+		hostIP = m.config.HostIP
+		log.Printf("Using configured HOST_IP: %s", hostIP)
+	} else {
+		// Auto-detect IP
+		var err error
+		hostIP, err = getHostIP()
+		if err != nil {
+			return fmt.Errorf("failed to get host IP: %w", err)
+		}
 	}
 
 	log.Printf("Processing DNS for %s -> %s", info.Hostname, hostIP)
@@ -114,11 +123,8 @@ func (m *Manager) ProcessHostInfo(ctx context.Context, info docker.HostInfo) err
 }
 
 func getHostIP() (string, error) {
-	// First, try to get the IP from environment variable
-	// This is useful when running in Docker
-	// You can set HOST_IP environment variable to override auto-detection
-
 	// Try to get the default outbound IP
+	// Note: This will return the local network IP, which may be private
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
 		return "", err
@@ -126,5 +132,32 @@ func getHostIP() (string, error) {
 	defer conn.Close()
 
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
-	return localAddr.IP.String(), nil
+	ip := localAddr.IP.String()
+
+	// Check if this is a private IP
+	if isPrivateIP(localAddr.IP) {
+		log.Printf("Warning: Detected private IP %s. For DNS records, you should set HOST_IP environment variable to your public IP", ip)
+	}
+
+	return ip, nil
+}
+
+func isPrivateIP(ip net.IP) bool {
+	if ip.IsLoopback() {
+		return true
+	}
+
+	// Check for private IPv4 addresses
+	if ip4 := ip.To4(); ip4 != nil {
+		return ip4[0] == 10 ||
+			(ip4[0] == 172 && ip4[1] >= 16 && ip4[1] <= 31) ||
+			(ip4[0] == 192 && ip4[1] == 168)
+	}
+
+	// Check for private IPv6 addresses
+	if ip.To16() != nil {
+		return len(ip) == net.IPv6len && ip[0] == 0xfc || ip[0] == 0xfd
+	}
+
+	return false
 }
