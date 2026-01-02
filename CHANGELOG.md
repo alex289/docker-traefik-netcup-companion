@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.2.0...v1.3.0) (2026-01-02)
+
+
+### Features
+
+* Add host ip env variable ([f73f3cd](https://github.com/alex289/docker-traefik-netcup-companion/commit/f73f3cd93fdcf0e1146576f3f05851acba0969c5))
+* Add test docker compose ([63b53fc](https://github.com/alex289/docker-traefik-netcup-companion/commit/63b53fc4c141cbc695479132fca88ba87cf737e1))
+
 ## [1.2.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.1.4...v1.2.0) (2026-01-01)
 
 
