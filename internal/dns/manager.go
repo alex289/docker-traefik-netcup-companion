@@ -10,21 +10,25 @@ import (
 	"github.com/alex289/docker-traefik-netcup-companion/internal/config"
 	"github.com/alex289/docker-traefik-netcup-companion/internal/docker"
 	netcup "github.com/alex289/docker-traefik-netcup-companion/internal/netcup"
+	"github.com/alex289/docker-traefik-netcup-companion/internal/notification"
 )
 
 type Manager struct {
 	config     *config.Config
 	client     *netcup.NetcupDnsClient
+	notifier   *notification.Notifier
 	mu         sync.Mutex
 	knownHosts map[string]bool // Track hosts we've already processed
 }
 
 func NewManager(cfg *config.Config) *Manager {
 	client := netcup.NewNetcupDnsClient(cfg.CustomerNumber, cfg.APIKey, cfg.APIPassword)
+	notifier := notification.NewNotifier(cfg.NotificationURLs)
 
 	return &Manager{
 		config:     cfg,
 		client:     client,
+		notifier:   notifier,
 		knownHosts: make(map[string]bool),
 	}
 }
@@ -59,6 +63,7 @@ func (m *Manager) ProcessHostInfo(ctx context.Context, info docker.HostInfo) err
 	// Login to Netcup
 	session, err := m.client.Login()
 	if err != nil {
+		m.notifier.SendError(fmt.Sprintf("Failed to login to Netcup for %s: %v", info.Hostname, err))
 		return fmt.Errorf("failed to login to Netcup: %w", err)
 	}
 	defer session.Logout()
@@ -66,12 +71,14 @@ func (m *Manager) ProcessHostInfo(ctx context.Context, info docker.HostInfo) err
 	// Check if DNS zone exists
 	_, err = session.InfoDnsZone(info.Domain)
 	if err != nil {
+		m.notifier.SendError(fmt.Sprintf("Failed to get DNS zone for %s: %v", info.Domain, err))
 		return fmt.Errorf("failed to get DNS zone for %s: %w", info.Domain, err)
 	}
 
 	// Get existing DNS records
 	records, err := session.InfoDnsRecords(info.Domain)
 	if err != nil {
+		m.notifier.SendError(fmt.Sprintf("Failed to get DNS records for %s: %v", info.Domain, err))
 		return fmt.Errorf("failed to get DNS records for %s: %w", info.Domain, err)
 	}
 
@@ -95,8 +102,10 @@ func (m *Manager) ProcessHostInfo(ctx context.Context, info docker.HostInfo) err
 	if m.config.DryRun {
 		if recordExists {
 			log.Printf("[DRY RUN] Would update DNS record: %s.%s (%s -> %s)", info.Subdomain, info.Domain, existingIP, hostIP)
+			m.notifier.SendInfo(fmt.Sprintf("[DRY RUN] Would update DNS: %s (%s -> %s)", info.Hostname, existingIP, hostIP))
 		} else {
 			log.Printf("[DRY RUN] Would create DNS record: %s.%s -> %s", info.Subdomain, info.Domain, hostIP)
+			m.notifier.SendInfo(fmt.Sprintf("[DRY RUN] Would create DNS: %s -> %s", info.Hostname, hostIP))
 		}
 		m.knownHosts[info.Hostname] = true
 		return nil
@@ -119,11 +128,18 @@ func (m *Manager) ProcessHostInfo(ctx context.Context, info docker.HostInfo) err
 	recordSet := []netcup.DnsRecord{newRecord}
 	_, err = session.UpdateDnsRecords(info.Domain, &recordSet)
 	if err != nil {
+		m.notifier.SendError(fmt.Sprintf("Failed to update DNS for %s: %v", info.Hostname, err))
 		return fmt.Errorf("failed to update DNS records: %w", err)
 	}
 
 	m.knownHosts[info.Hostname] = true
 	log.Printf("Successfully configured DNS for %s", info.Hostname)
+
+	if recordExists {
+		m.notifier.SendSuccess(fmt.Sprintf("Updated DNS: %s -> %s", info.Hostname, hostIP))
+	} else {
+		m.notifier.SendSuccess(fmt.Sprintf("Created DNS: %s -> %s", info.Hostname, hostIP))
+	}
 
 	return nil
 }

@@ -29,6 +29,7 @@ func TestLoad(t *testing.T) {
 				"NC_DEFAULT_TTL":      "600",
 				"DOCKER_FILTER_LABEL": "traefik.enable=true",
 				"DRY_RUN":             "true",
+				"NOTIFICATION_URLS":   "slack://token@channel,discord://token@id",
 			},
 			wantErr: false,
 		},
@@ -131,6 +132,13 @@ func TestLoad(t *testing.T) {
 					t.Errorf("DockerFilterLabel = %v, want %v", cfg.DockerFilterLabel, val)
 				}
 			}
+
+			// Test notification URLs
+			if val, ok := tt.envVars["NOTIFICATION_URLS"]; ok {
+				if val == "" && len(cfg.NotificationURLs) != 0 {
+					t.Errorf("NotificationURLs = %v, want empty slice", cfg.NotificationURLs)
+				}
+			}
 		})
 	}
 }
@@ -159,6 +167,11 @@ func TestLoadDefaults(t *testing.T) {
 	// Test default DockerFilterLabel
 	if cfg.DockerFilterLabel != "" {
 		t.Errorf("DockerFilterLabel = %v, want empty string", cfg.DockerFilterLabel)
+	}
+
+	// Test default NotificationURLs
+	if len(cfg.NotificationURLs) != 0 {
+		t.Errorf("NotificationURLs = %v, want empty slice", cfg.NotificationURLs)
 	}
 }
 
@@ -190,6 +203,68 @@ func TestLoadDryRunVariations(t *testing.T) {
 
 			if cfg.DryRun != tc.expected {
 				t.Errorf("DryRun = %v, want %v for DRY_RUN=%v", cfg.DryRun, tc.expected, tc.value)
+			}
+		})
+	}
+}
+func TestLoadNotificationURLs(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    string
+		expected []string
+	}{
+		{
+			name:     "no URLs",
+			value:    "",
+			expected: []string{},
+		},
+		{
+			name:     "single URL",
+			value:    "slack://token@channel",
+			expected: []string{"slack://token@channel"},
+		},
+		{
+			name:     "multiple URLs",
+			value:    "slack://token@channel,discord://token@id",
+			expected: []string{"slack://token@channel", "discord://token@id"},
+		},
+		{
+			name:     "URLs with spaces",
+			value:    "slack://token@channel, discord://token@id , generic://webhook",
+			expected: []string{"slack://token@channel", "discord://token@id", "generic://webhook"},
+		},
+		{
+			name:     "URLs with trailing comma",
+			value:    "slack://token@channel,",
+			expected: []string{"slack://token@channel"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv("NC_CUSTOMER_NUMBER", "12345")
+			os.Setenv("NC_API_KEY", "test-key")
+			os.Setenv("NC_API_PASSWORD", "test-password")
+			os.Setenv("NOTIFICATION_URLS", tc.value)
+
+			cfg, err := Load()
+			if err != nil {
+				t.Fatalf("Load() error = %v", err)
+			}
+
+			if len(cfg.NotificationURLs) != len(tc.expected) {
+				t.Errorf("NotificationURLs length = %v, want %v", len(cfg.NotificationURLs), len(tc.expected))
+			}
+
+			for i, url := range tc.expected {
+				if i >= len(cfg.NotificationURLs) {
+					t.Errorf("Missing URL at index %v, want %v", i, url)
+					continue
+				}
+				if cfg.NotificationURLs[i] != url {
+					t.Errorf("NotificationURLs[%v] = %v, want %v", i, cfg.NotificationURLs[i], url)
+				}
 			}
 		})
 	}

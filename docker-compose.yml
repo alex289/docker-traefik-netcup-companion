@@ -11,6 +11,7 @@ services:
       - NC_CUSTOMER_NUMBER=12345
       - NC_API_KEY=your_key
       - NC_API_PASSWORD=your_password
-      - DOCKER_FILTER_LABEL=traefik.enable=true
       - DRY_RUN=true
-      - HOST_IP=your_host_ip
+      - HOST_IP=your_host_ip  # Optional but recommended
+      - DOCKER_FILTER_LABEL=traefik.enable=true # Optional
+      - NOTIFICATION_URLS=slack://token@channel,discord://token@id # Optional

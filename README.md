@@ -14,6 +14,7 @@ A lightweight Go application that automatically creates DNS records in Netcup wh
 - 🔄 Scans existing running containers on startup
 - 🎯 Optional filtering by Docker labels
 - 🧪 Dry run mode for testing without making actual DNS changes
+- 🔔 Optional webhook notifications for DNS changes and errors (via [nicholas-fedor/shoutrrr](https://shoutrrr.nickfedor.com/))
 
 ## How It Works
 
@@ -41,6 +42,7 @@ The application is configured via environment variables:
 | `DOCKER_FILTER_LABEL` | No | Filter containers by label (e.g., `traefik.enable=true`) |
 | `NC_DEFAULT_TTL` | No | Default TTL for DNS records (default: 300) |
 | `DRY_RUN` | No | Enable dry run mode - logs actions without making actual DNS changes (set to `true` or `1`) |
+| `NOTIFICATION_URLS` | No | Comma-separated list of notification webhook URLs in [shoutrrr format](https://shoutrrr.nickfedor.com/v0.13.1/services/overview/) (e.g., `slack://token@channel,discord://token@id`) |
 
 ## Usage
 

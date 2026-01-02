@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -23,6 +24,9 @@ type Config struct {
 
 	// Dry run mode - if enabled, no actual DNS changes will be made
 	DryRun bool
+
+	// Notification URLs - optional webhook URLs for notifications (shoutrrr format)
+	NotificationURLs []string
 }
 
 func Load() (*Config, error) {
@@ -56,6 +60,16 @@ func Load() (*Config, error) {
 		dryRun = true
 	}
 
+	// Parse notification URLs (comma-separated)
+	var notificationURLs []string
+	if notificationURLsStr := os.Getenv("NOTIFICATION_URLS"); notificationURLsStr != "" {
+		for _, url := range strings.Split(notificationURLsStr, ",") {
+			if trimmed := strings.TrimSpace(url); trimmed != "" {
+				notificationURLs = append(notificationURLs, trimmed)
+			}
+		}
+	}
+
 	return &Config{
 		CustomerNumber:    customerNumber,
 		APIKey:            apiKey,
@@ -64,5 +78,6 @@ func Load() (*Config, error) {
 		DefaultTTL:        defaultTTL,
 		HostIP:            os.Getenv("HOST_IP"),
 		DryRun:            dryRun,
+		NotificationURLs:  notificationURLs,
 	}, nil
 }
