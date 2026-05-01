@@ -20,7 +20,7 @@ jobs:
       new-release-created: ${{ steps.release-please-action.outputs.releases_created }}
       tag-name: ${{ steps.release-please-action.outputs.tag_name }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         id: release-please-action
         with:
           release-type: go
