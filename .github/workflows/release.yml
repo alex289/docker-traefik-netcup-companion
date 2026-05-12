@@ -84,6 +84,6 @@ jobs:
       - name: Attest image
         uses: actions/attest@v4
         with:
-          subject-name: ${{ env.IMAGE_NAME }}
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
