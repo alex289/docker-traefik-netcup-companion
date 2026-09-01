@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.6.0...v1.7.0) (2026-09-01)
+
+
+### Features
+
+* Attest image ([65d7f45](https://github.com/alex289/docker-traefik-netcup-companion/commit/65d7f45a8fdb895e1f1fc00745d1843eb0f8e311))
+
+
+### Bug Fixes
+
+* Add registry ([5343d23](https://github.com/alex289/docker-traefik-netcup-companion/commit/5343d232a3351262267f5e177b4d7e38c9a67a77))
+
 ## [1.6.0](https://github.com/alex289/docker-traefik-netcup-companion/compare/v1.5.0...v1.6.0) (2026-01-02)
 
 
